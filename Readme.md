@@ -74,3 +74,87 @@ docker exec -it jobmanager ./bin/flink run \
   --class io.streamingledger.datastream.BufferingStream \
   jars/spf-0.1.0.jar
 ```
+
+### Flink Table Setup
+
+The transactions table:
+
+```sql
+CREATE TABLE transactions (
+    transactionId STRING,
+    accountId STRING,
+    customerId STRING,
+    eventTime BIGINT,
+    eventTime_ltz AS TO_TIMESTAMP_LTZ(eventTime, 3),
+    eventTimeFormatted STRING,
+    type STRING,
+    operation STRING,
+    amount DOUBLE,
+    balance DOUBLE,
+    WATERMARK FOR eventTime_ltz AS eventTime_ltz
+) WITH (
+    'connector' = 'kafka',
+    'topic' = 'transactions',
+    'properties.bootstrap.servers' = 'redpanda:9092',
+    'properties.group.id' = 'group.transactions',
+    'format' = 'json',
+    'scan.startup.mode' = 'earliest-offset'
+);
+```
+
+The customers table:
+
+```sql
+CREATE TABLE customers (
+    customerId STRING,
+    sex STRING,
+    social STRING,
+    fullName STRING,
+    phone STRING,
+    email STRING,
+    address1 STRING,
+    address2 STRING,
+    city STRING,
+    state STRING,
+    zipcode STRING,
+    districtId STRING,
+    birthDate STRING,
+    updateTime BIGINT,
+    eventTime_ltz AS TO_TIMESTAMP_LTZ(updateTime, 3),
+    WATERMARK FOR eventTime_ltz AS eventTime_ltz,
+    PRIMARY KEY (customerId) NOT ENFORCED
+) WITH (
+    'connector' = 'upsert-kafka',
+    'topic' = 'customers',
+    'properties.bootstrap.servers' = 'redpanda:9092',
+    'key.format' = 'raw',
+    'value.format' = 'json',
+    'properties.group.id' = 'group.customers'
+);
+```
+
+The account tables:
+
+```sql
+CREATE TABLE accounts (
+    accountId STRING,
+    districtId INT,
+    frequency STRING,
+    creationDate STRING,
+    updateTime BIGINT,
+    eventTime_ltz AS TO_TIMESTAMP_LTZ(updateTime, 3),
+    WATERMARK FOR eventTime_ltz AS eventTime_ltz,
+    PRIMARY KEY (accountId) NOT ENFORCED
+) WITH (
+    'connector' = 'upsert-kafka',
+    'topic' = 'accounts',
+    'properties.bootstrap.servers' = 'redpanda:9092',
+    'key.format' = 'raw',
+    'value.format' = 'json',
+    'properties.group.id' = 'group.accounts'
+);
+```
+
+### Loading Data
+
+To load data into the systems run `StateProducer` and `TransactionsProducer` with your IntelliJ.
