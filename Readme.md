@@ -158,3 +158,11 @@ CREATE TABLE accounts (
 ### Loading Data
 
 To load data into the systems run `StateProducer` and `TransactionsProducer` with your IntelliJ.
+
+### SQL Client
+
+You can use the Flink SQL client by using the following command:
+
+```shell
+docker exec -it jobmanager ./bin/sql-client.sh
+```
