@@ -166,3 +166,13 @@ You can use the Flink SQL client by using the following command:
 ```shell
 docker exec -it jobmanager ./bin/sql-client.sh
 ```
+
+### Setup Databases
+
+```sql
+-- create database
+CREATE DATABASE bank;
+USE bank;
+
+-- see above or queries package for the sql
+```
